@@ -39,6 +39,19 @@ class ngPushFacebookFeed extends ngPushFacebookBase
             $ch = curl_init($url);
             curl_setopt_array($ch, $options);
 
+            $ini = eZINI::instance();
+            $proxy = $ini->variable( 'ProxySettings', 'ProxyServer' );
+            if ( $proxy )
+            {
+                curl_setopt( $ch, CURLOPT_PROXY, $proxy );
+                $userName = $ini->variable( 'ProxySettings', 'User' );
+                $password = $ini->variable( 'ProxySettings', 'Password' );
+                if ( $userName )
+                {
+                    curl_setopt( $ch, CURLOPT_PROXYUSERPWD, "$userName:$password" );
+                }
+            }
+
             $content    = curl_exec($ch);
             $errno      = curl_errno($ch);
             $errmsg     = curl_error($ch);

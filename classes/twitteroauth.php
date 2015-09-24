@@ -203,6 +203,19 @@ class TwitterOAuth {
     curl_setopt($ci, CURLOPT_HEADERFUNCTION, array($this, 'getHeader'));
     curl_setopt($ci, CURLOPT_HEADER, FALSE);
 
+    $ini = eZINI::instance();
+    $proxy = $ini->variable( 'ProxySettings', 'ProxyServer' );
+    if ( $proxy )
+    {
+      curl_setopt( $ci, CURLOPT_PROXY, $proxy );
+      $userName = $ini->variable( 'ProxySettings', 'User' );
+      $password = $ini->variable( 'ProxySettings', 'Password' );
+      if ( $userName )
+      {
+          curl_setopt( $ci, CURLOPT_PROXYUSERPWD, "$userName:$password" );
+      }
+    }
+
     switch ($method) {
       case 'POST':
         curl_setopt($ci, CURLOPT_POST, TRUE);

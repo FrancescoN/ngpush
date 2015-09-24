@@ -9,6 +9,8 @@ $accessToken        = base64_decode( $Params['AccessToken'] );
 $saveStatus         = false;
 
 $NGPushIni = eZINI::instance( 'ngpush.ini' );
+$ini = eZINI::instance();
+$proxy_server = $ini->variable( 'ProxySettings', 'ProxyServer' );
 
 switch ($Params['Case']) {
     case 'twitter':
@@ -44,7 +46,44 @@ switch ($Params['Case']) {
            . "client_id=" . $NGPushIni->variable( $settingsBlock, 'AppId') . "&redirect_uri=" . urlencode($redirectUrl)
            . "&client_secret=" . $NGPushIni->variable( $settingsBlock, 'AppSecret') . "&code=" . $accessToken[1];
 
-         $response = file_get_contents($token_url);
+
+        //proxy
+        if($proxy_server!=null){
+
+            //if exists remove http or https from url
+            $proxy_server = preg_replace('#^https?://#', '', $proxy_server);
+
+            $userName = $ini->variable( 'ProxySettings', 'User' );
+            $password = $ini->variable( 'ProxySettings', 'Password' );
+
+            //econde username and password
+            $auth = base64_encode("$userName:$password");
+
+            //both http and https
+            $opts = array(
+                'http' => array (
+                    'method'=>'GET',
+                    'proxy'=>$proxy_server,
+                    'request_fulluri' => true,
+                    'header'=> "Proxy-Authorization: Basic $auth"
+
+                ),
+                'https' => array (
+                    'method'=>'GET',
+                    'proxy'=>$proxy_server,
+                    'request_fulluri' => true,
+                    'header'=> "Proxy-Authorization: Basic $auth"
+                )
+            );
+
+            $ctx = stream_context_create($opts);
+            $response = file_get_contents($token_url,false,$ctx);
+
+        //no proxy
+        }else{
+            $response = file_get_contents($token_url);
+        }
+
          $params = null;
          parse_str($response, $params);
 

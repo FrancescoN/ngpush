@@ -27,6 +27,7 @@ class ngPushBase
 		$fileHandler->storeContents( $Token );
 
 		$storedToken = $fileHandler->fetchContents();
+
 		if ( $storedToken !== false )
 			return true;
 
@@ -72,6 +73,19 @@ class ngPushBase
 
 			$new_url = $url['scheme'] . '://' . $url['host'] . $url['path'] . ($url['query'] ? '?' . $url['query'] : '');
 			curl_setopt($ch, CURLOPT_URL, $new_url);
+
+            $ini = eZINI::instance();
+            $proxy = $ini->variable( 'ProxySettings', 'ProxyServer' );
+            if ( $proxy )
+            {
+                curl_setopt( $ch, CURLOPT_PROXY, $proxy );
+                $userName = $ini->variable( 'ProxySettings', 'User' );
+                $password = $ini->variable( 'ProxySettings', 'Password' );
+                if ( $userName )
+                {
+                    curl_setopt( $ch, CURLOPT_PROXYUSERPWD, "$userName:$password" );
+                }
+            }
 
 			return self::curl_redir_exec($ch, $data2);
 		}

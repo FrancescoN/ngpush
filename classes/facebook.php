@@ -548,6 +548,20 @@ class Facebook
     }
 
     curl_setopt_array($ch, $opts);
+
+      $ini = eZINI::instance();
+      $proxy = $ini->variable( 'ProxySettings', 'ProxyServer' );
+      if ( $proxy )
+      {
+          curl_setopt( $ch, CURLOPT_PROXY, $proxy );
+          $userName = $ini->variable( 'ProxySettings', 'User' );
+          $password = $ini->variable( 'ProxySettings', 'Password' );
+          if ( $userName )
+          {
+              curl_setopt( $ch, CURLOPT_PROXYUSERPWD, "$userName:$password" );
+          }
+      }
+
     $result = curl_exec($ch);
     if ($result === false) {
       $e = new FacebookApiException(array(
